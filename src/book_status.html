@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#080d13">
+	<title>書目檢索 · ARCHIVE</title>
+	<style>
+		:root {
+			color-scheme: dark;
+			font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+			background: #080d13;
+			color: #e7eef5;
+			font-synthesis: none;
+			text-rendering: optimizeLegibility;
+			--muted: #82909e;
+			--line: rgba(154, 180, 197, .14);
+			--panel: rgba(17, 26, 36, .88);
+			--green: #55edaa;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			min-width: 320px;
+			min-height: 100vh;
+			margin: 0;
+			background:
+				radial-gradient(ellipse at 77% 0%, rgba(24, 111, 100, .17), transparent 38rem),
+				radial-gradient(ellipse at 2% 38%, rgba(32, 83, 132, .14), transparent 32rem),
+				#080d13;
+		}
+
+		button, input { font: inherit; }
+		button { color: inherit; }
+
+		.shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+
+		header {
+			height: 76px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			border-bottom: 1px solid var(--line);
+		}
+
+		.brand { display: flex; align-items: center; gap: 12px; }
+		.brand-mark {
+			width: 34px;
+			height: 34px;
+			display: grid;
+			place-items: center;
+			border: 1px solid rgba(85, 237, 170, .35);
+			border-radius: 10px;
+			background: rgba(85, 237, 170, .08);
+			color: var(--green);
+			font-size: 18px;
+		}
+
+		.brand-name { font-size: 13px; font-weight: 700; letter-spacing: .16em; }
+		.brand-sub { margin-top: 3px; color: var(--muted); font-size: 10px; letter-spacing: .13em; }
+		.connection { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+		.connection-dot { width: 7px; height: 7px; border-radius: 50%; background: #8794a0; }
+		.connection-dot.online { background: var(--green); box-shadow: 0 0 12px rgba(85, 237, 170, .7); }
+		.connection-dot.error { background: #f6bd60; }
+
+		main { padding: 62px 0 76px; }
+		.eyebrow { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .19em; }
+		h1 { margin: 14px 0 12px; font-size: clamp(34px, 5vw, 54px); font-weight: 650; letter-spacing: -.045em; }
+		.intro { margin: 0; color: #9aa8b5; font-size: 15px; line-height: 1.8; }
+
+		.search-panel {
+			margin-top: 34px;
+			padding: 14px;
+			border: 1px solid rgba(146, 176, 194, .19);
+			border-radius: 15px;
+			background: rgba(16, 24, 33, .9);
+			box-shadow: 0 18px 50px rgba(0, 0, 0, .22), inset 0 1px rgba(255, 255, 255, .025);
+		}
+
+		.search-row { display: flex; gap: 12px; }
+		.search-box {
+			min-width: 0;
+			flex: 1;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 0 14px;
+			border: 1px solid var(--line);
+			border-radius: 10px;
+			background: #0c131b;
+			color: var(--muted);
+		}
+
+		.search-box svg { flex: 0 0 auto; }
+		.search-box input {
+			width: 100%;
+			height: 48px;
+			border: 0;
+			outline: 0;
+			background: transparent;
+			color: #edf4f8;
+			font-size: 14px;
+		}
+
+		.search-box:focus-within { border-color: rgba(85, 237, 170, .55); box-shadow: 0 0 0 3px rgba(85, 237, 170, .08); }
+		.search-box input::placeholder { color: #657382; }
+		.search-button, .retry-button {
+			border: 1px solid rgba(85, 237, 170, .35);
+			border-radius: 10px;
+			background: #55edaa;
+			color: #062017;
+			cursor: pointer;
+			font-weight: 700;
+		}
+
+		.search-button { padding: 0 22px; }
+		.search-button:hover, .retry-button:hover { background: #82f5bf; }
+		.search-hint { margin: 11px 3px 1px; color: #72808d; font-size: 11px; }
+
+		.results-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			margin: 34px 2px 14px;
+		}
+
+		.results-title { font-size: 14px; font-weight: 650; }
+		.results-count { margin-left: 8px; color: var(--muted); font-size: 12px; font-weight: 400; }
+		.availability-legend { display: flex; align-items: center; gap: 8px; color: #a6b2bd; font-size: 12px; }
+		.legend-light { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px rgba(85, 237, 170, .6); }
+
+		.book-list { display: grid; gap: 10px; }
+		.book-card {
+			position: relative;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 22px;
+			padding: 20px 22px;
+			overflow: hidden;
+			border: 1px solid var(--line);
+			border-radius: 13px;
+			background: linear-gradient(110deg, rgba(18, 28, 38, .94), rgba(14, 21, 29, .92));
+			transition: border-color .18s, transform .18s;
+		}
+
+		.book-card:hover { transform: translateY(-1px); border-color: rgba(112, 153, 171, .36); }
+		.book-card.available { border-left: 2px solid rgba(85, 237, 170, .78); }
+		.book-title { margin: 0; color: #edf4f8; font-size: 17px; font-weight: 650; line-height: 1.5; }
+		.book-author { margin-top: 5px; color: #99a8b5; font-size: 13px; line-height: 1.6; }
+		.book-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 15px; color: #8795a2; font-size: 12px; }
+		.meta-item { display: inline-flex; align-items: center; gap: 6px; }
+		.meta-label { color: #647382; }
+
+		.status {
+			min-width: 110px;
+			align-self: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			padding: 10px 12px;
+			border: 1px solid rgba(139, 156, 170, .2);
+			border-radius: 10px;
+			background: rgba(130, 144, 158, .08);
+			color: #aab5bf;
+			font-size: 12px;
+			font-weight: 650;
+			white-space: nowrap;
+		}
+
+		.status-light { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: #8794a0; }
+		.status.available {
+			border-color: rgba(85, 237, 170, .24);
+			background: rgba(85, 237, 170, .08);
+			color: #78f2b6;
+		}
+
+		.status.available .status-light { background: var(--green); box-shadow: 0 0 12px rgba(85, 237, 170, .78); }
+		.message {
+			padding: 34px 20px;
+			border: 1px dashed rgba(146, 176, 194, .2);
+			border-radius: 13px;
+			color: #a2afba;
+			text-align: center;
+			font-size: 13px;
+			line-height: 1.8;
+		}
+
+		.message strong { display: block; margin-bottom: 6px; color: #e0e9ef; font-size: 14px; }
+		.retry-button { margin-top: 14px; padding: 9px 14px; }
+		footer { margin-top: 28px; color: #62717e; font-size: 11px; text-align: center; }
+
+		@media (max-width: 620px) {
+			.shell { width: min(100% - 28px, 1120px); }
+			header { height: 66px; }
+			main { padding-top: 42px; }
+			.search-panel { padding: 10px; }
+			.search-row { flex-direction: column; }
+			.search-button { min-height: 44px; }
+			.results-head { align-items: flex-start; flex-direction: column; }
+			.book-card { grid-template-columns: 1fr; gap: 16px; padding: 17px; }
+			.status { min-width: 0; justify-self: start; }
+		}
+	</style>
+</head>
+<body>
+	<div class="shell">
+		<header>
+			<div class="brand">
+				<div class="brand-mark" aria-hidden="true">⌕</div>
+				<div>
+					<div class="brand-name">ARCHIVE</div>
+					<div class="brand-sub">BOOK CATALOGUE</div>
+				</div>
+			</div>
+			<div class="connection" aria-live="polite">
+				<span class="connection-dot" id="connectionDot"></span>
+				<span id="connectionText">等待連線</span>
+			</div>
+		</header>
+
+		<main>
+			<div class="eyebrow">COLLECTION / SEARCH</div>
+			<h1>書目檢索</h1>
+			<p class="intro">搜尋館藏書目，快速確認書籍資訊與在架狀態。</p>
+
+			<section class="search-panel" aria-label="書目搜尋">
+				<form class="search-row" id="searchForm">
+					<label class="search-box" for="searchInput">
+						<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none">
+							<circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"></circle>
+							<path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+						</svg>
+						<input id="searchInput" type="search" autocomplete="off" placeholder="輸入書名、作者、索書號、分類或館藏位置">
+					</label>
+					<button class="search-button" type="submit">搜尋書目</button>
+				</form>
+				<div class="search-hint">可搜尋書名、作者／出版社、出版年、分類、索書號或館藏位置</div>
+			</section>
+
+			<div class="results-head">
+				<div class="results-title">館藏書目 <span class="results-count" id="resultCount">載入中…</span></div>
+				<div class="availability-legend"><span class="legend-light"></span>綠燈代表目前在架上</div>
+			</div>
+			<section class="book-list" id="bookList" aria-live="polite"></section>
+			<footer>館藏狀態依資料庫最近更新資訊呈現</footer>
+		</main>
+	</div>
+
+	<script>
+		// 請填入 Supabase 專案網址與 anon / publishable key；勿使用 service_role key。
+		const SUPABASE_URL = "https://twzhnymvtzcxtlaqbzcb.supabase.co";
+		const SUPABASE_ANON_KEY = "sb_publishable_-idIjhwEMqFAN7P5cGTpvg_C8Zu3k7i";
+		const BOOKS_TABLE = "books";
+		const PAGE_SIZE = 1000;
+
+		const bookList = document.getElementById("bookList");
+		const searchInput = document.getElementById("searchInput");
+		const resultCount = document.getElementById("resultCount");
+		const connectionDot = document.getElementById("connectionDot");
+		const connectionText = document.getElementById("connectionText");
+		let books = [];
+
+		function setConnectionState(state, text) {
+			connectionDot.className = `connection-dot${state ? ` ${state}` : ""}`;
+			connectionText.textContent = text;
+		}
+
+		function escapeHtml(value) {
+			return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+				"&": "&amp;",
+				"<": "&lt;",
+				">": "&gt;",
+				'"': "&quot;",
+				"'": "&#39;"
+			})[char]);
+		}
+
+		function formatAvailability(value) {
+			if (value === true || value === "true") {
+				return '<div class="status available"><span class="status-light"></span><span>在架上</span></div>';
+			}
+			if (value === false || value === "false") {
+				return '<div class="status"><span class="status-light"></span><span>目前未在架</span></div>';
+			}
+			return '<div class="status"><span class="status-light"></span><span>狀態未確認</span></div>';
+		}
+
+		function formatDate(value) {
+			if (!value) return "";
+			const date = new Date(value);
+			if (Number.isNaN(date.getTime())) return "";
+			return new Intl.DateTimeFormat("zh-TW", {
+				timeZone: "Asia/Taipei",
+				year: "numeric",
+				month: "2-digit",
+				day: "2-digit",
+				hour: "2-digit",
+				minute: "2-digit",
+				hourCycle: "h23"
+			}).format(date);
+		}
+
+		function renderBooks(query = "") {
+			const normalizedQuery = query.trim().toLocaleLowerCase();
+			const filtered = books.filter((book) => {
+				const searchable = [
+					book.title, book.author_publisher, book.publication_year,
+					book.category, book.location, book.call_number, book.original_id
+				].filter((value) => value !== null && value !== undefined).join(" ").toLocaleLowerCase();
+				return searchable.includes(normalizedQuery);
+			});
+
+			resultCount.textContent = `共 ${filtered.length} 筆`;
+			if (filtered.length === 0) {
+				bookList.innerHTML = '<div class="message"><strong>找不到符合的書目</strong>請確認關鍵字，或試試書名、作者、索書號等其他資訊。</div>';
+				return;
+			}
+
+			bookList.innerHTML = filtered.map((book) => {
+				const available = book.avaliable === true || book.avaliable === "true";
+				const details = [
+					book.publication_year ? `<span class="meta-item"><span class="meta-label">出版年</span>${escapeHtml(book.publication_year)}</span>` : "",
+					book.category ? `<span class="meta-item"><span class="meta-label">分類</span>${escapeHtml(book.category)}</span>` : "",
+					book.call_number ? `<span class="meta-item"><span class="meta-label">索書號</span>${escapeHtml(book.call_number)}</span>` : "",
+					book.location ? `<span class="meta-item"><span class="meta-label">館藏位置</span>${escapeHtml(book.location)}</span>` : "",
+					formatDate(book.last_check) ? `<span class="meta-item"><span class="meta-label">最後確認</span>${escapeHtml(formatDate(book.last_check))}</span>` : ""
+				].filter(Boolean).join("");
+
+				return `
+					<article class="book-card${available ? " available" : ""}">
+						<div>
+							<h2 class="book-title">${escapeHtml(book.title || "未提供書名")}</h2>
+							${book.author_publisher ? `<div class="book-author">${escapeHtml(book.author_publisher)}</div>` : ""}
+							<div class="book-meta">${details || '<span class="meta-item">尚無其他書目資訊</span>'}</div>
+						</div>
+						${formatAvailability(book.avaliable)}
+					</article>`;
+			}).join("");
+		}
+
+		function showMessage(title, detail, retry = false) {
+			resultCount.textContent = "";
+			bookList.innerHTML = `
+				<div class="message">
+					<strong>${escapeHtml(title)}</strong>
+					${escapeHtml(detail)}
+					${retry ? '<br><button class="retry-button" id="retryButton" type="button">重新連線</button>' : ""}
+				</div>`;
+			document.getElementById("retryButton")?.addEventListener("click", loadBooks);
+		}
+
+		async function loadBooks() {
+			if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+				setConnectionState("error", "尚未設定連線");
+				showMessage(
+					"請完成 Supabase 連線設定",
+					"在此 HTML 檔案底部的 script 中填入 SUPABASE_URL 與 SUPABASE_ANON_KEY，並確認資料表名稱與讀取權限。"
+				);
+				return;
+			}
+
+			setConnectionState("", "正在連線");
+			bookList.innerHTML = '<div class="message">正在讀取 Supabase 書目資料…</div>';
+			resultCount.textContent = "載入中…";
+
+			try {
+				const baseUrl = SUPABASE_URL.replace(/\/+$/, "");
+				const encodedTable = BOOKS_TABLE.split(".").map(encodeURIComponent).join(".");
+				const selectedColumns = "id,original_id,title,author_publisher,publication_year,category,location,call_number,avaliable,last_check";
+				const loadedBooks = [];
+				let start = 0;
+
+				while (true) {
+					const url = new URL(`${baseUrl}/rest/v1/${encodedTable}`);
+					url.searchParams.set("select", selectedColumns);
+					url.searchParams.set("order", "title.asc");
+					url.searchParams.set("offset", String(start));
+					url.searchParams.set("limit", String(PAGE_SIZE));
+
+					const response = await fetch(url, {
+						headers: {
+							apikey: SUPABASE_ANON_KEY,
+							Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+						}
+					});
+
+					if (!response.ok) {
+						throw new Error(`Supabase 回應 ${response.status}：${await response.text()}`);
+					}
+
+					const page = await response.json();
+					if (!Array.isArray(page)) {
+						throw new Error("資料庫回傳格式不是書目清單。");
+					}
+
+					loadedBooks.push(...page);
+					if (page.length < PAGE_SIZE) break;
+					start += page.length;
+				}
+
+				books = loadedBooks;
+				setConnectionState("online", "資料庫已連線");
+				renderBooks(searchInput.value);
+			} catch (error) {
+				console.error("載入 Supabase 書目失敗：", error);
+				setConnectionState("error", "連線失敗");
+				showMessage(
+					"無法讀取書目資料",
+					`${error.message} 請檢查專案網址、anon key、資料表名稱，以及 Supabase 的 SELECT / RLS 權限設定。`,
+					true
+				);
+			}
+		}
+
+		document.getElementById("searchForm").addEventListener("submit", (event) => {
+			event.preventDefault();
+			renderBooks(searchInput.value);
+		});
+		searchInput.addEventListener("input", () => renderBooks(searchInput.value));
+		loadBooks();
+	</script>
+</body>
+</html>

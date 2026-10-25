@@ -4,6 +4,17 @@
 - 2026/05/30 3D模型繪畫 3D列印出來  
 - 2026/06/06 前天在學校圖書館拍攝了書櫃的照片 測試 初步使用AI建構的程式碼測試，但OCR出來的效果無法辨識，程式待改善與修正
 
+
+問題:
+9/20  OCR掃描只掃描的到字體為正立(書寫體)的英文字無法掃描旋轉的文字
+
+結論:
+每轉90度掃描一次(共四次)之後選出text confidence(確定性 )>50(一定值)的資料出來對比
+
+
+
+
+
 ---
 # 書脊辨識與館藏狀態更新
 
@@ -36,6 +47,14 @@ python src/book_checker.py \
 ```
 
 可選參數包括 `--supabase-table`（預設 `books`）、`--books-csv`（預設 `bookslist.csv`）、`--workspace`、`--project`、`--version`、`--confidence`、`--overlap` 與 `--margin`。
+
+## 使用excel模擬書目資料網頁
+ <img width="862" height="292" alt="img" src="https://github.com/user-attachments/assets/d8db897d-ea28-476d-9c3f-d2a1a76f2b74" />
+
+1. excel中有一筆資料“800L377:2”,L與冒號之間的函示:
+=MID(A1,FIND("L",A1)+1,FIND(":",A1)-FIND("L",A1)-1)。
+2. 找出索書號最大與最小的數目(99, 557)總共有43本書
+
 
 ## 流程與比對規則
 
